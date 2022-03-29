@@ -1,0 +1,9 @@
+type KongHolder {
+  address: String! # can make this a custom scalar "EthAddress"
+  ids: [Int!]!
+}
+
+type Query {
+  kongHolders: [String!]!
+  kongsByAddress(address: String!): [Int!]! # if address is not a kong holder => []
+}

@@ -1,0 +1,71 @@
+# ReNFT Escrow contract events are served to be consumed
+# Using these events, the on-chain state can be reconstructed anywhere
+
+enum EventType {
+  LEND
+  RENT
+  STOP_RENT
+  STOP_LEND
+  RENT_CLAIMED
+}
+
+interface Event {
+  txHash: String!
+  txOffset: Int!
+}
+
+type Lend implements Event {
+  txHash: String!
+  txOffset: Int!
+  is721: Boolean!
+  lenderAddress: String!
+  nftAddress: String!
+  tokenID: String!
+  lendingID: Int!
+  maxRentDuration: Int!
+  dailyRentPrice: Float!
+  lendAmount: Int!
+  paymentToken: Int!
+}
+
+type Rent implements Event {
+  txHash: String!
+  txOffset: Int!
+  lendingID: Int!
+  rentingID: Int!
+  rentAmount: Int!
+  rentDuration: Int!
+  rentedAt: Int!
+}
+
+type StopRent implements Event {
+  txHash: String!
+  txOffset: Int!
+  rentingID: Int!
+  stoppedAt: Int!
+}
+
+type StopLend implements Event {
+  txHash: String!
+  txOffset: Int!
+  lendingID: Int!
+  stoppedAt: Int!
+}
+
+type RentClaimed implements Event {
+  txHash: String!
+  txOffset: Int!
+  rentingID: Int!
+  collectedAt: Int!
+}
+
+type Query {
+  getLendEvents(limit: Int = -1, ascending: Boolean = true): [Lend!]!
+  getRentEvents(limit: Int = -1, ascending: Boolean = true): [Rent!]!
+  getStopRentEvents(limit: Int = -1, ascending: Boolean = true): [StopRent!]!
+  getStopLendEvents(limit: Int = -1, ascending: Boolean = true): [StopLend!]!
+  getRentClaimedEvents(
+    limit: Int = -1
+    ascending: Boolean = true
+  ): [RentClaimed!]!
+}
