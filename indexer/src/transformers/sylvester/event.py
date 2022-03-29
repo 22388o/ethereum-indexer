@@ -9,7 +9,8 @@ from abc import ABC
 from dataclasses import asdict, dataclass
 from typing import Any, List, Union
 
-ID_SEPERATOR='_'
+ID_SEPERATOR = "_"
+
 
 @dataclass
 class SylvesterEvent(ABC):
@@ -21,11 +22,10 @@ class SylvesterEvent(ABC):
     _id: str
     event: str
 
-
     @staticmethod
     def get_id(tx_hash: str, tx_offset: Union[str, int]) -> str:
         """Creates unique identifier for Sylvester Event
-        
+
         Args:
             tx_hash (str): transaction hash
             tx_offset (Union[str, int]): transaction offset
@@ -60,9 +60,8 @@ class LendEvent(SylvesterEvent):
     lendAmount: int
     paymentToken: int
 
-
-    #TODO: Typing for event parameters
-    #pylint: disable=too-many-arguments
+    # TODO: Typing for event parameters
+    # pylint: disable=too-many-arguments
     @classmethod
     def create(
         cls,
@@ -76,7 +75,7 @@ class LendEvent(SylvesterEvent):
         max_rent_duration: int,
         daily_rent_price: int,
         lend_amount: int,
-        payment_token: int
+        payment_token: int,
     ):
         """
         Factory method for 'Lend' sylvester event.
@@ -103,7 +102,7 @@ class LendEvent(SylvesterEvent):
 
         return cls(
             _id=_id,
-            event='Lend',
+            event="Lend",
             is721=is_721,
             lenderAddress=lender_address,
             nftAddress=nft_address,
@@ -132,9 +131,10 @@ class RentEvent(SylvesterEvent):
     rentingID: int
     rentedAt: int
 
-   #TODO: Typing for event parameters
+    # TODO: Typing for event parameters
     @classmethod
-    def create(cls, 
+    def create(
+        cls,
         tx_hash: str,
         log_offset: Union[str, int],
         lending_id: int,
@@ -142,8 +142,8 @@ class RentEvent(SylvesterEvent):
         renting_id: int,
         rent_amount: int,
         rent_duration: int,
-        rented_at: int
-        ):
+        rented_at: int,
+    ):
         """
         Factory method for 'Rent' sylvester event.
 
@@ -165,13 +165,13 @@ class RentEvent(SylvesterEvent):
 
         return cls(
             _id=_id,
-            event='Rent',
+            event="Rent",
             renterAddress=renter_address,
             lendingID=lending_id,
             rentingID=renting_id,
             rentAmount=rent_amount,
             rentDuration=rent_duration,
-            rentedAt=rented_at
+            rentedAt=rented_at,
         )
 
 
@@ -187,9 +187,11 @@ class StopRentEvent(SylvesterEvent):
     rentingID: int
     stoppedAt: int
 
-    #TODO: Typing for event parameters
+    # TODO: Typing for event parameters
     @classmethod
-    def create(cls, tx_hash: str, log_offset: Union[str, int], renting_id: int, stopped_at: int):
+    def create(
+        cls, tx_hash: str, log_offset: Union[str, int], renting_id: int, stopped_at: int
+    ):
         """
         Factory method for 'StopRent' sylvester event.
 
@@ -208,7 +210,7 @@ class StopRentEvent(SylvesterEvent):
 
         return cls(
             _id=_id,
-            event='StopRent',
+            event="StopRent",
             rentingID=renting_id,
             stoppedAt=stopped_at,
         )
@@ -226,9 +228,11 @@ class StopLendEvent(SylvesterEvent):
     lendingID: int
     stoppedAt: int
 
-   #TODO: Typing for event parameters
+    # TODO: Typing for event parameters
     @classmethod
-    def create(cls, tx_hash: str, log_offset: Union[str, int], lending_id: int, stopped_at: int):
+    def create(
+        cls, tx_hash: str, log_offset: Union[str, int], lending_id: int, stopped_at: int
+    ):
         """
         Factory method for 'StopLend' sylvester event.
 
@@ -247,7 +251,7 @@ class StopLendEvent(SylvesterEvent):
 
         return cls(
             _id=_id,
-            event='StopLend',
+            event="StopLend",
             lendingID=lending_id,
             stoppedAt=stopped_at,
         )
@@ -265,9 +269,15 @@ class RentClaimedEvent(SylvesterEvent):
     rentingID: int
     collectedAt: int
 
-   #TODO: Typing for event parameters
+    # TODO: Typing for event parameters
     @classmethod
-    def create(cls, tx_hash: str, log_offset: Union[str, int], renting_id: int, collected_at: int):
+    def create(
+        cls,
+        tx_hash: str,
+        log_offset: Union[str, int],
+        renting_id: int,
+        collected_at: int,
+    ):
         """
         Factory method for 'RentClaimed' sylvester event.
 
@@ -286,7 +296,7 @@ class RentClaimedEvent(SylvesterEvent):
 
         return cls(
             _id=_id,
-            event='RentClaimed',
+            event="RentClaimed",
             rentingID=renting_id,
             collectedAt=collected_at,
         )

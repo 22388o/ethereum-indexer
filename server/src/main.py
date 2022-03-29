@@ -14,8 +14,13 @@ from interfaces.iserver import IServer
 class Server(IServer):
     """@inheritdoc IServer"""
 
-    def __init__(self, to_serve: str, host: Optional[str] = "0.0.0.0", port: Optional[int] = 8080, 
-        graphiql_debug: Optional[bool] = False) -> None:
+    def __init__(
+        self,
+        to_serve: str,
+        host: Optional[str] = "0.0.0.0",
+        port: Optional[int] = 8080,
+        graphiql_debug: Optional[bool] = False,
+    ) -> None:
         self.to_serve = to_serve
         self.host = host
         self.graphiql_debug = graphiql_debug
@@ -29,19 +34,23 @@ class Server(IServer):
         app = web.Application()
 
         register_graphql_handlers(
-                app,
-                engine_sdl=os.path.dirname(os.path.abspath(__file__)) + "/" + self.to_serve + "/sdl",
-                engine_modules=[
-                    f"{self.to_serve}.query_resolvers",
-                ],
-                executor_http_endpoint="/graphql",
-                executor_http_methods=["POST"],
-                graphiql_enabled=self.graphiql_debug,
-            )
+            app,
+            engine_sdl=os.path.dirname(os.path.abspath(__file__))
+            + "/"
+            + self.to_serve
+            + "/sdl",
+            engine_modules=[
+                f"{self.to_serve}.query_resolvers",
+            ],
+            executor_http_endpoint="/graphql",
+            executor_http_methods=["POST"],
+            graphiql_enabled=self.graphiql_debug,
+        )
 
         # Bind aiohttp to asyncio
         web.run_app(app, host=self.host, port=self.port)
         return 0
+
 
 def main():
     """Graphql Server Entrypoint"""

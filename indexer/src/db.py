@@ -8,8 +8,9 @@ from interfaces.idb import IDB
 
 load_dotenv()
 
-#pylint: disable=line-too-long
+# pylint: disable=line-too-long
 MONGO_URI = f"mongodb://{os.environ['MONGO_USER']}:{os.environ['MONGO_PASSWORD']}@{os.environ['MONGO_HOST']}:{os.environ['MONGO_PORT']}"
+
 
 class DB(IDB):
     def __init__(self):

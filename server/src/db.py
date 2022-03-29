@@ -12,8 +12,9 @@ from interfaces.idb import IDB
 
 load_dotenv()
 
-#pylint: disable=line-too-long
+# pylint: disable=line-too-long
 MONGO_URI = f"mongodb://{os.environ['MONGO_USER']}:{os.environ['MONGO_PASSWORD']}@{os.environ['MONGO_HOST']}:{os.environ['MONGO_PORT']}"
+
 
 class DB(IDB):
     """@inheritdoc IDB"""
@@ -24,19 +25,30 @@ class DB(IDB):
     def _get_collection(self, database_name: str, collection_name: str):
         return self.client[database_name][collection_name]
 
-    async def get_item(self, identifier: str, database_name: str, collection_name: str) -> Any:
+    async def get_item(
+        self, identifier: str, database_name: str, collection_name: str
+    ) -> Any:
         cursor = self._get_collection(database_name, collection_name)
 
-        result  = await cursor.find_one({"_id": identifier})
+        result = await cursor.find_one({"_id": identifier})
         return result
 
-    async def count_documents(self, database_name: str, collection_name: str, options: Optional[Dict] = None) -> int:
+    async def count_documents(
+        self, database_name: str, collection_name: str, options: Optional[Dict] = None
+    ) -> int:
         cursor = self._get_collection(database_name, collection_name)
 
-        return await cursor.count_documents(options['query'] if 'query' in options else {})
+        return await cursor.count_documents(
+            options["query"] if "query" in options else {}
+        )
 
-
-    async def get_all_items(self, database_name: str, collection_name: str, limit: int = -1, options: Optional[Dict] = None) -> List[Any]:
+    async def get_all_items(
+        self,
+        database_name: str,
+        collection_name: str,
+        limit: int = -1,
+        options: Optional[Dict] = None,
+    ) -> List[Any]:
         cursor = self._get_collection(database_name, collection_name)
 
         if limit == -1:
@@ -44,16 +56,16 @@ class DB(IDB):
 
         if options is not None:
 
-            if 'query' in options:
-                cursor = cursor.find(options['query'])
-            else: 
+            if "query" in options:
+                cursor = cursor.find(options["query"])
+            else:
                 cursor = cursor.find()
 
             if "sort" in options:
                 # [('fieldName1', pymongo.ASCENDING), ('fieldName2', pymongo.DESCENDING)]
                 cursor.sort(options["sort"])
-                
-            if 'collation' in options:
+
+            if "collation" in options:
                 cursor.collation(options["collation"])
 
             cursor.allow_disk_use(True)

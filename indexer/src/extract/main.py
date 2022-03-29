@@ -11,7 +11,7 @@ from extract.covalent import Covalent
 # for now the solution around that would be to simply run this pipeline
 # multiple times
 
-EXTRACT_SLEEP_TIME = 15 # in seconds
+EXTRACT_SLEEP_TIME = 15  # in seconds
 
 
 class Extract(IExtract):
