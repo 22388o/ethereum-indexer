@@ -13,6 +13,5 @@ repos:
         types: [python]
         args: [
             "--rcfile=.pylintrc", # Link to your config file
-            "indexer/",
-            "server/"
+            "src/"
           ]

@@ -32,6 +32,12 @@ This should be ran in your `poetry` environment. To drop into poetry environment
 
 To change the network that covalent extracts transactions from, go to `extractor/covalent.py`
 
+### For Developers
+
+It is paramount that you follow the linting and formatting conventions of this repository.
+
+Make sure you have (`pre-commit`)[https://pre-commit.com/] installed. `pre-commit` is part of the dev dependencies in this repo. You just need to run `pre-commit install` once you are in the correct poetry python environment. Also, make sure, that after you opened the PR all checks pass. Otherwise, the PR **will not be merged**.
+
 ### TODO
 
 1. Dockerfile
