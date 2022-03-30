@@ -1,5 +1,9 @@
 #!/usr/bin/env python
-import asyncio
+"""
+Entrypoint for GraphQL server.
+"""
+# pylint: disable=too-few-public-methods
+
 import logging
 import os
 import sys
@@ -28,19 +32,20 @@ class Server(IServer):
 
     def start(self) -> None:
         """@inheritdoc IServer"""
-        loop = asyncio.get_event_loop()
+        # loop = asyncio.get_event_loop()
 
         # Init aiohttp server
         app = web.Application()
 
+        root_path = os.path.dirname(os.path.abspath(__file__))
+
+        sdl_path = f"{root_path}/servers/{self.to_serve}/sdl"
+
         register_graphql_handlers(
             app,
-            engine_sdl=os.path.dirname(os.path.abspath(__file__))
-            + "/"
-            + self.to_serve
-            + "/sdl",
+            engine_sdl=sdl_path,
             engine_modules=[
-                f"{self.to_serve}.query_resolvers",
+                f"servers.{self.to_serve}.query_resolvers",
             ],
             executor_http_endpoint="/graphql",
             executor_http_methods=["POST"],
@@ -55,8 +60,8 @@ class Server(IServer):
 def main():
     """Graphql Server Entrypoint"""
 
-    log_file = "azrael.log"
-    to_serve = "azrael"
+    log_file = "sylvester.log"
+    to_serve = "sylvester"
 
     logging.basicConfig(
         filename=log_file,

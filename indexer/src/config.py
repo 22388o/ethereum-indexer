@@ -1,3 +1,8 @@
+"""
+Defines Configuration schema and factory methods.
+"""
+
+
 class Config:
     """
     Each Config instance contains all the required information for end-to-end

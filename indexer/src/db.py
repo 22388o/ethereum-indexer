@@ -1,3 +1,6 @@
+"""
+IDB Implementation using pymongo package
+"""
 import os
 from typing import Any, Dict, List, Optional
 
@@ -13,12 +16,14 @@ MONGO_URI = f"mongodb://{os.environ['MONGO_USER']}:{os.environ['MONGO_PASSWORD']
 
 
 class DB(IDB):
+    """@inheritdoc IDB"""
+
     def __init__(self):
         self.client = MongoClient(MONGO_URI)
 
     def put_item(self, item: Dict, database_name: str, collection_name: str) -> None:
-        db = self.client[database_name]
-        db[collection_name].replace_one({"_id": item["_id"]}, item, upsert=True)
+        _db = self.client[database_name]
+        _db[collection_name].replace_one({"_id": item["_id"]}, item, upsert=True)
 
     def put_items(
         self, items: List[Any], database_name: str, collection_name: str
@@ -26,23 +31,23 @@ class DB(IDB):
         if items is None or len(items) == 0:
             return
 
-        db = self.client[database_name]
-        db[collection_name].insert_many(items)
+        _db = self.client[database_name]
+        _db[collection_name].insert_many(items)
 
     def get_item(
         self, identifier: str, database_name: str, collection_name: str
     ) -> Any:
-        db = self.client[database_name]
-        return db[collection_name].find({"_id": identifier})
+        _db = self.client[database_name]
+        return _db[collection_name].find({"_id": identifier})
 
     # todo: concrete type for options
     def get_all_items(
         self, database_name: str, collection_name: str, options: Optional[Dict] = None
     ) -> List[Any]:
-        db = self.client[database_name]
+        _db = self.client[database_name]
 
         if options is None:
-            return list(db[collection_name].find())
+            return list(_db[collection_name].find())
 
         if "sort" in options:
             # todo: validation
@@ -55,14 +60,14 @@ class DB(IDB):
                 query_clause = options["query_clause"]
 
             return list(
-                db[collection_name]
+                _db[collection_name]
                 .find(query_clause, allow_disk_use=True)
                 .sort(sort_by, direction)
             )
 
         # todo: not really needed here, but pylint will complain
         # todo if removed
-        return list(db[collection_name].find())
+        return list(_db[collection_name].find())
 
     def get_any_item(
         self, database_name: str, collection_name: str, _: Optional[Dict] = None

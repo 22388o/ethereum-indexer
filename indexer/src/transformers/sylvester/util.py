@@ -1,6 +1,8 @@
 """Util methods for sylvester"""
 
-# TODO: move this to a seperate pypi package
+# todo: move this to a seperate pypi package
+# disable this pylint to preserve modularity
+# pylint: disable=duplicate-code
 
 import base64
 

@@ -1,9 +1,12 @@
 """RKL Holders Graphql Resolver"""
 
+# disable this pylint to preserve modularity
+# pylint: disable=relative-beyond-top-level
+
 from typing import Dict, List
+from tartiflette import Resolver
 
 from db import DB
-from tartiflette import Resolver
 
 DATABASE_NAME = "ethereum-indexer"
 COLLECTION_NAME = "0xEf0182dc0574cd5874494a120750FD222FdB909a-state"
@@ -31,7 +34,8 @@ async def resolve_kong_holders(_parent, _args, _ctx, _info) -> List[str]:
     Resolves 'kongHolders' graphql query for the Graphql Engine.
 
     Returns:
-        List[str]: List of wallet addresses that are kong holders, compatible with RKL Graphql schema.
+        List[str]: List of wallet addresses that are kong holders, compatible with RKL
+        Graphql schema.
     """
 
     result = await db.get_item(1, DATABASE_NAME, COLLECTION_NAME)

@@ -1,3 +1,6 @@
+"""
+An indexer transformer for RKL Kong Holders
+"""
 import logging
 
 from db import DB
@@ -8,7 +11,7 @@ from transform.covalent import Covalent
 # todo: every instance should also take the address it transforms
 # todo: as a constructor argument
 class Transformer:
-    """RKL Kong Holder Transformer"""
+    """RKL Kong Holder Transformer Implementation"""
 
     def __init__(self, address: str):
 
@@ -25,7 +28,7 @@ class Transformer:
         self._db = DB()
 
     # todo: type that returns transformed transaction
-    # TODO: documentation
+    # todo: documentation
     def entrypoint(self, txn) -> None:
         """_summary_
 
@@ -61,12 +64,12 @@ class Transformer:
             if event["decoded"]["name"] in self._events_of_interest:
                 decoded_params = Covalent.decode(event)
                 if event["decoded"]["name"] == "Transfer":
-                    from_, to, value = (
+                    from_, _to, value = (
                         decoded_params[0],
                         decoded_params[1],
                         decoded_params[2],
                     )
-                    self._on_transfer(from_, to, value)
+                    self._on_transfer(from_, _to, value)
 
             logging.info(event)
 

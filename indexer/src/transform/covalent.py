@@ -34,7 +34,7 @@ class Covalent(Covalent_):
 
                 if decoded_param["type"] == "uint256":
                     decoded.append(int(raw_param, 16))
-                # TODO: Other types
+                # todo: Other types
                 else:
                     raise NotImplementedError(
                         f'Undecoded covalent param: {decoded_param["type"]}'

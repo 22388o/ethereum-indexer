@@ -1,9 +1,16 @@
+"""
+An indexer transformer for ReNft Azrael Contract
+"""
 import logging
 from typing import Any, List
 
 from db import DB
 from transform.covalent import Covalent
-from transformers.azrael.event import (
+
+# disable this pylint to preserve modularity
+# pylint: disable=relative-beyond-top-level
+
+from .event import (
     AzraelEvent,
     CollateralClaimedEvent,
     LendingStoppedEvent,
@@ -11,7 +18,7 @@ from transformers.azrael.event import (
     RentedEvent,
     ReturnedEvent,
 )
-from transformers.azrael.util import unpack_price
+from .util import unpack_price
 
 
 # todo: needs to inherit an interface that implements flush
@@ -19,7 +26,7 @@ from transformers.azrael.util import unpack_price
 # todo: as a constructor argument
 class Transformer:
     """
-    ReNFT Azrael Transformer
+    ReNFT Azrael Transformer implementation
 
     The Extractor stores on-chain Azrael transactions on disk.
     The Transformer transforms these transcations into events emitted
@@ -50,7 +57,7 @@ class Transformer:
         self._db = DB()
 
     # todo: type that returns transformed transaction
-    # TODO: documentation
+    # todo: documentation
     def entrypoint(self, txn) -> None:
         """_summary_
 
@@ -180,7 +187,7 @@ class Transformer:
 
         self._add_transformed(event)
 
-    # TODO: typing for event
+    # todo: typing for event
     def _on_lent(self, event: Any, decoded_params: List[Any]) -> None:
         # Lent(indexed address nftAddress, indexed uint256 tokenId, uint8 lentAmount,
         # uint256 lendingId, indexed address lenderAddress, uint8 maxRentDuration,

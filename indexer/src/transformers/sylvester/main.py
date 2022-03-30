@@ -1,9 +1,16 @@
+"""
+An indexer transformer for ReNft Sylvester Contract
+"""
 import logging
 from typing import Any, List
 
 from db import DB
 from transform.covalent import Covalent
-from transformers.sylvester.event import (
+
+# disable this pylint to preserve modularity
+# pylint: disable=relative-beyond-top-level
+
+from .event import (
     LendEvent,
     RentClaimedEvent,
     RentEvent,
@@ -11,7 +18,7 @@ from transformers.sylvester.event import (
     StopRentEvent,
     SylvesterEvent,
 )
-from transformers.sylvester.util import unpack_price
+from .util import unpack_price
 
 
 # todo: needs to inherit an interface that implements flush
@@ -19,7 +26,7 @@ from transformers.sylvester.util import unpack_price
 # todo: as a constructor argument
 class Transformer:
     """
-    ReNFT Sylvester Transformer
+    ReNFT Sylvester Transformer Implementation
 
     The Extractor stores on-chain Sylvester transactions on disk.
     The Transformer transforms these transcations into events emitted
@@ -50,7 +57,7 @@ class Transformer:
         self._db = DB()
 
     # todo: type that returns transformed transaction
-    # TODO: documentation
+    # todo: documentation
     def entrypoint(self, txn) -> None:
         """_summary_
 

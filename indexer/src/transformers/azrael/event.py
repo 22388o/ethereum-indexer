@@ -61,7 +61,7 @@ class LentEvent(AzraelEvent):
     isERC721: bool
     paymentToken: int
 
-    # TODO: Typing for event parameters
+    # todo: Typing for event parameters
     # pylint: disable=too-many-arguments
     @classmethod
     def create(
@@ -133,7 +133,7 @@ class RentedEvent(AzraelEvent):
     rentDuration: int
     rentedAt: int
 
-    # TODO: Typing for event parameters
+    # todo: Typing for event parameters
     # pylint: disable=too-many-arguments
     @classmethod
     def create(
@@ -185,7 +185,7 @@ class ReturnedEvent(AzraelEvent):
     lendingId: int
     returnedAt: int
 
-    # TODO: Typing for event parameters
+    # todo: Typing for event parameters
     @classmethod
     def create(
         cls,
@@ -230,7 +230,7 @@ class LendingStoppedEvent(AzraelEvent):
     lendingId: int
     stoppedAt: int
 
-    # TODO: Typing for event parameters
+    # todo: Typing for event parameters
     @classmethod
     def create(
         cls, tx_hash: str, log_offset: Union[str, int], lending_id: int, stopped_at: int
@@ -268,7 +268,7 @@ class CollateralClaimedEvent(AzraelEvent):
     lendingId: int
     claimedAt: int
 
-    # TODO: Typing for event parameters
+    # todo: Typing for event parameters
     @classmethod
     def create(
         cls, tx_hash: str, log_offset: Union[str, int], lending_id: int, claimed_at: int

@@ -1,10 +1,15 @@
+"""Sylvester Graphql query resolver"""
+
 from typing import Callable, Dict, List, Optional
 
 import pymongo
-from db import DB
 from tartiflette import Resolver
+from db import DB
 
-from sylvester.event import (
+# disable this pylint to preserve modularity
+# pylint: disable=relative-beyond-top-level
+
+from .event import (
     LendEvent,
     RentClaimedEvent,
     RentEvent,
@@ -13,12 +18,12 @@ from sylvester.event import (
     SylvesterEvent,
 )
 
-database_name = "ethereum-indexer"
-collection_name = "0xa8D3F65b6E2922fED1430b77aC2b557e1fa8DA4a-state"
+DATABASE_NAME = "ethereum-indexer"
+COLLECTION_NAME = "0xa8D3F65b6E2922fED1430b77aC2b557e1fa8DA4a-state"
 
 db = DB()
 
-# TODO: This method is almost identical to one inside azrael.query_resolver
+
 async def resolve_event(
     name: str, args: Dict, transformer: Callable, sort_by: Optional[str] = "lendingID"
 ) -> List[SylvesterEvent]:
@@ -43,7 +48,12 @@ async def resolve_event(
 
     options = {"query": query, "sort": sort}
 
-    results = await db.get_all_items(database_name, collection_name, limit, options)
+    results = await db.get_all_items(
+        database_name=DATABASE_NAME,
+        collection_name=COLLECTION_NAME,
+        limit=limit,
+        options=options,
+    )
 
     return list(map(transformer, results))
 

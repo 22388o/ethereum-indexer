@@ -1,6 +1,6 @@
 """Util methods for azrael"""
 
-# TODO: move this to a seperate pypi package
+# todo: move this to a seperate pypi package
 
 import base64
 

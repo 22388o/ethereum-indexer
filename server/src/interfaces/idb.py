@@ -8,8 +8,8 @@ together to build new proofs.
 import abc
 from typing import Any, Dict, List, Optional
 
-# TODO: some of the items below can raise. Write docs for it
-# TODO: A lot of this code is duplicated in the indexer. Need to clean that up at some point.
+# todo: some of the items below can raise. Write docs for it
+# todo: A lot of this code is duplicated in the indexer. Need to clean that up at some point.
 
 
 class IDB(metaclass=abc.ABCMeta):
@@ -17,6 +17,7 @@ class IDB(metaclass=abc.ABCMeta):
 
     @classmethod
     def __subclasshook__(cls, subclass):
+        # pylint: disable=consider-using-ternary
         return (
             hasattr(subclass, "get_item")
             and callable(subclass.get_item)

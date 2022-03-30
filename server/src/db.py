@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 
 from interfaces.idb import IDB
 
-# TODO: A lot of this code is duplicated in the indexer. Need to clean that up at some point.
 
 load_dotenv()
 

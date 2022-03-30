@@ -1,3 +1,6 @@
+"""
+Transformer base class
+"""
 import importlib
 import logging
 import time

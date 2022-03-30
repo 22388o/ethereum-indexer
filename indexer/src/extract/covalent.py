@@ -1,3 +1,6 @@
+"""
+Covalent API client
+"""
 import logging
 import os
 import time

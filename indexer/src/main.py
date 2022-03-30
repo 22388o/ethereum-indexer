@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+"""
+Entrypoint for indexer.
+"""
+
 import logging
 import sys
 from multiprocessing import Process

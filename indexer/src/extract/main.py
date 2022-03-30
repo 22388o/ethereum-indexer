@@ -26,7 +26,7 @@ class Extract(IExtract):
 
         self._config = config
 
-        # TODO: validate to ensure that this address is not in the db
+        # todo: validate to ensure that this address is not in the db
 
         self._address: str = self._config.get_address()
         # block number up to which the extraction has happened
