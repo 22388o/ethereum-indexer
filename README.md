@@ -38,6 +38,10 @@ It is paramount that you follow the linting and formatting conventions of this r
 
 Make sure you have (`pre-commit`)[https://pre-commit.com/] installed. `pre-commit` is part of the dev dependencies in this repo. You just need to run `pre-commit install` once you are in the correct poetry python environment. Also, make sure, that after you opened the PR all checks pass. Otherwise, the PR **will not be merged**.
 
+Also, make sure to lint modules individually before pushing. Otherwise, the pylint git action will fail. Navigate to the root module directory `cd server/` and run `pylint --recursive=y .`. 
+
+Note: Pylint is not part of pre-commit config because it does not play well with the monolithic structure of the project.
+
 ### TODO
 
 1. Dockerfile

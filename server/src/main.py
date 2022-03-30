@@ -7,28 +7,34 @@ Entrypoint for GraphQL server.
 import logging
 import os
 import sys
-from typing import Optional
-
 from aiohttp import web
 from tartiflette_aiohttp import register_graphql_handlers
+
+from config import Config
+
 
 from interfaces.iserver import IServer
 
 
 class Server(IServer):
-    """@inheritdoc IServer"""
+    """
+    IServer Implementation
+
+    to_server: The server namespace to serve
+    host: the host address to serve on (default: 0.0.0.0)
+    port: the port to serve on (default: 8080)
+    graphiql_debug: Whether to serve GraphiQL debug client on http://host/graphiql (default: False)
+    """
 
     def __init__(
         self,
-        to_serve: str,
-        host: Optional[str] = "0.0.0.0",
-        port: Optional[int] = 8080,
-        graphiql_debug: Optional[bool] = False,
+        config: Config
     ) -> None:
-        self.to_serve = to_serve
-        self.host = host
-        self.graphiql_debug = graphiql_debug
-        self.port = port
+        self._config = config
+        self.to_serve = self._config.get_server_name()
+        self.host = self._config.get_host()
+        self.port = self._config.get_port()
+        self.graphiql_debug = self._config.with_graphiql_debug()
 
     def start(self) -> None:
         """@inheritdoc IServer"""
@@ -60,16 +66,15 @@ class Server(IServer):
 def main():
     """Graphql Server Entrypoint"""
 
-    log_file = "sylvester.log"
-    to_serve = "sylvester"
+    config = Config.sylvester(graphiql_debug=True)
 
     logging.basicConfig(
-        filename=log_file,
+        filename=config.get_log_filename(),
         level=logging.DEBUG,
         format="%(relativeCreated)6d %(process)d %(message)s",
     )
 
-    server = Server(to_serve, port=8080, graphiql_debug=True)
+    server = Server(config)
     server()
 
 
