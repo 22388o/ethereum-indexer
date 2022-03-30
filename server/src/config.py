@@ -3,6 +3,7 @@ Defines Server Configuration schema and factory methods.
 """
 from typing import Optional
 
+
 class Config:
     """
     Each Config instance contains all the required information for end-to-end
@@ -11,7 +12,12 @@ class Config:
 
     # pylint: disable=too-many-arguments
     def __init__(
-        self, log_filename: str, server_name: str, host:str, port: int, graphiql_debug: bool
+        self,
+        log_filename: str,
+        server_name: str,
+        host: str,
+        port: int,
+        graphiql_debug: bool,
     ) -> None:
         self._log_filename = log_filename
         self._server_name = server_name
@@ -29,7 +35,7 @@ class Config:
             "_server_name",
             "_host",
             "_port",
-            "_graphiql_debug"
+            "_graphiql_debug",
         ]
         for k in forbid_reset_on:
             if key == k and hasattr(self, k):
@@ -95,9 +101,9 @@ class Config:
     def sylvester(
         cls,
         host: Optional[str] = "0.0.0.0",
-        port:Optional[int]=8080,
-        graphiql_debug: Optional[bool]=False
-        ):
+        port: Optional[int] = 8080,
+        graphiql_debug: Optional[bool] = False,
+    ):
         """
         Factory method for Sylvester graphql server configuration presets.
 
@@ -120,9 +126,9 @@ class Config:
     def azrael(
         cls,
         host: Optional[str] = "0.0.0.0",
-        port:Optional[int]=8080,
-        graphiql_debug: Optional[bool]=False
-        ):
+        port: Optional[int] = 8080,
+        graphiql_debug: Optional[bool] = False,
+    ):
         """
         Factory method for Azrael graphql server configuration presets.
 
@@ -145,9 +151,9 @@ class Config:
     def example_rumble_kong_league(
         cls,
         host: Optional[str] = "0.0.0.0",
-        port:Optional[int]=8080,
-        graphiql_debug: Optional[bool]=False
-        ):
+        port: Optional[int] = 8080,
+        graphiql_debug: Optional[bool] = False,
+    ):
         """
         Factory method for RKL Kong Holders graphql server configuration presets.
 

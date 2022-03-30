@@ -26,10 +26,7 @@ class Server(IServer):
     graphiql_debug: Whether to serve GraphiQL debug client on http://host/graphiql (default: False)
     """
 
-    def __init__(
-        self,
-        config: Config
-    ) -> None:
+    def __init__(self, config: Config) -> None:
         self._config = config
         self.to_serve = self._config.get_server_name()
         self.host = self._config.get_host()
