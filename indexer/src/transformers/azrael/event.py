@@ -4,22 +4,23 @@ This class defines ALL events emitted by the azrael contract.
 Event List: Lent, Rented, Returned, LendingStopped, CollateralClaimed
 """
 
-from abc import ABC
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from typing import Union
 
 ID_SEPERATOR = "_"
 
 
-@dataclass
-class AzraelEvent(ABC):
+@dataclass(frozen=True, order=True)
+class AzraelEvent:
     """
     Abstract azrael Event. Holds txHash and txOffset, togther they are a unique
     identifier for azrael events. e.i _id=txHash_txOffset
     """
 
-    _id: str
-    event: str
+    _id: str = field(compare=False)
+    # pylint: disable=invalid-name
+    lendingId: int = field(compare=True)
+    event: str = field(compare=False)
 
     @staticmethod
     def get_id(tx_hash: str, tx_offset: Union[str, int]) -> str:
@@ -40,7 +41,7 @@ class AzraelEvent(ABC):
         return asdict(self)
 
 
-@dataclass
+@dataclass(frozen=True)
 class LentEvent(AzraelEvent):
     """
     LentEvent DTO (Data Transfer Object)
@@ -49,7 +50,6 @@ class LentEvent(AzraelEvent):
     """
 
     # pylint: disable=invalid-name,too-many-instance-attributes
-    lendingId: int
     lentAmount: int
     maxRentDuration: int
     paymentToken: int
@@ -59,7 +59,6 @@ class LentEvent(AzraelEvent):
     dailyRentPrice: float
     nftPrice: float
     isERC721: bool
-    paymentToken: int
 
     # todo: Typing for event parameters
     # pylint: disable=too-many-arguments
@@ -106,10 +105,10 @@ class LentEvent(AzraelEvent):
         return cls(
             _id=_id,
             event="Lent",
+            lendingId=lending_id,
             nftAddress=nft_address,
             tokenId=token_id,
             lentAmount=lent_amount,
-            lendingId=lending_id,
             lendersAddress=lender_address,
             maxRentDuration=max_rent_duration,
             dailyRentPrice=daily_rent_price,
@@ -119,7 +118,7 @@ class LentEvent(AzraelEvent):
         )
 
 
-@dataclass
+@dataclass(frozen=True)
 class RentedEvent(AzraelEvent):
     """
     RentedEvent DTO (Data Transfer Object)
@@ -128,7 +127,6 @@ class RentedEvent(AzraelEvent):
     """
 
     # pylint: disable=invalid-name
-    lendingId: int
     renterAddress: str
     rentDuration: int
     rentedAt: int
@@ -173,7 +171,7 @@ class RentedEvent(AzraelEvent):
         )
 
 
-@dataclass
+@dataclass(frozen=True)
 class ReturnedEvent(AzraelEvent):
     """
     ReturnedEvent DTO (Data Transfer Object)
@@ -182,7 +180,6 @@ class ReturnedEvent(AzraelEvent):
     """
 
     # pylint: disable=invalid-name
-    lendingId: int
     returnedAt: int
 
     # todo: Typing for event parameters
@@ -218,7 +215,7 @@ class ReturnedEvent(AzraelEvent):
         )
 
 
-@dataclass
+@dataclass(frozen=True)
 class LendingStoppedEvent(AzraelEvent):
     """
     LendingStopped DTO (Data Transfer Object)
@@ -227,7 +224,6 @@ class LendingStoppedEvent(AzraelEvent):
     """
 
     # pylint: disable=invalid-name
-    lendingId: int
     stoppedAt: int
 
     # todo: Typing for event parameters
@@ -256,7 +252,7 @@ class LendingStoppedEvent(AzraelEvent):
         )
 
 
-@dataclass
+@dataclass(frozen=True)
 class CollateralClaimedEvent(AzraelEvent):
     """
     CollateralClaimed DTO (Data Transfer Object)
@@ -265,7 +261,6 @@ class CollateralClaimedEvent(AzraelEvent):
     """
 
     # pylint: disable=invalid-name
-    lendingId: int
     claimedAt: int
 
     # todo: Typing for event parameters

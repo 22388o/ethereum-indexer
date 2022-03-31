@@ -65,12 +65,6 @@ class Transform(ITransform):
         # !: will be more than one address later
         return f"{self._config.get_address()}-state"
 
-    def _get_events_of_interest(self) -> List[str]:
-        return self._get_events_from_config()
-
-    def _get_events_from_config(self) -> List[str]:
-        return self._config["events"]
-
     def _get_block_height_collection_name(self) -> str:
         return f"{self._config.get_address()}-block-height-state"
 
@@ -149,7 +143,7 @@ class Transform(ITransform):
         latest_block = raw_transactions[-1]["block_height"]
 
         # 6.
-        self._update_block_height(latest_block)
+        #self._update_block_height(latest_block)
 
     def flush(self) -> None:
         """@inheritdoc ITransform"""

@@ -3,7 +3,10 @@ An indexer transformer for ReNft Azrael Contract
 """
 import logging
 from typing import Any, List
-
+import itertools
+import operator
+from pprint import pprint
+from .azrael_structs import LendingRenting
 from db import DB
 from transform.covalent import Covalent
 
@@ -129,8 +132,23 @@ class Transformer:
         """_summary_"""
 
         if self._flush_state:
-            # * write to the db
-            self._db.put_items(self._transformed, self._db_name, self._collection_name)
+
+            # Using the events we can no build up all of our LendingRentings
+            if len(self._transformed) > 0:
+                # Start by grouping ALL events by 'lendingId'
+                lending_id_attr = operator.itemgetter('lendingId')
+                self._transformed = sorted(self._transformed, key=lending_id_attr)
+                groups = {
+                    k: list(g) for k, g in itertools.groupby(self._transformed, lending_id_attr)
+                }
+
+                lending_rentings: List[LendingRenting] = list(
+                    map(LendingRenting.from_events, groups.values())
+                )
+
+                # * write to the db
+                self._db.put_items(lending_rentings, self._db_name, self._collection_name)
+
             self._flush_state = False
 
     def _add_transformed(self, event: AzraelEvent) -> None:
