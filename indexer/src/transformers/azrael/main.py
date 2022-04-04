@@ -2,10 +2,8 @@
 An indexer transformer for ReNft Azrael Contract
 """
 import logging
-from typing import Any, List
-import itertools
-import operator
-from pprint import pprint
+from typing import Any, List, Dict
+from functools import cmp_to_key
 from .azrael_structs import LendingRenting
 from db import DB
 from transform.covalent import Covalent
@@ -21,8 +19,7 @@ from .event import (
     RentedEvent,
     ReturnedEvent,
 )
-from .util import unpack_price
-
+from .util import unpack_price, compare_azrael_events
 
 # todo: needs to inherit an interface that implements flush
 # todo: every instance should also take the address it transforms
@@ -33,8 +30,7 @@ class Transformer:
 
     The Extractor stores on-chain Azrael transactions on disk.
     The Transformer transforms these transcations into events emitted
-    by the Azrael contract. Using these events an on-chain state can
-    be reconstructed off-chain.
+    by the Azrael contract. The events are then transformed into LendingRentings.
 
     Azrael Events of interest are: Lent, Rented, Returned, LendingStopped, CollateralClaimed
     """
@@ -43,7 +39,8 @@ class Transformer:
 
         self._address = address
 
-        self._transformed = []
+        self._transformed: Dict[int, LendingRenting] = dict()
+        self._events: List[AzraelEvent] = []
 
         self._db_name = "ethereum-indexer"
         self._collection_name = f"{self._address}-state"
@@ -110,49 +107,63 @@ class Transformer:
 
             logging.info(event)
 
-        self._flush_state = True
+        # Need events to transform
+        if len(self._events) > 0:
+            # Remove duplicates
+            self._events = list(set(self._events))
+
+            # Sort them by priority
+            self._events.sort(key=cmp_to_key(compare_azrael_events))
+
+            # Consume the events; FIFO
+            event = self._events.pop(0)
+            while event is not None:
+                self._transform_event(event)
+                event = self._events.pop(0) if len(self._events) > 0 else None
+
+            self._flush_state = True
 
     # todo: should be part of the interface
     # todo: acts as the means to sync with db state
     def update_memory_state(self) -> None:
         """_summary_"""
 
-        if len(self._transformed) > 0:
-            return
-
         state = self._db.get_all_items(self._db_name, self._collection_name)
 
         if state is None:
             return
 
-        self._transformed = state
+        for doc in state:
+            lending_renting: LendingRenting = LendingRenting.from_mongo_doc(doc)
+            self._transformed[lending_renting.lending.lendingId] = lending_renting
+
 
     # todo: should be part of the interface
     def flush(self) -> None:
         """_summary_"""
 
         if self._flush_state:
+            print("Flushing transformer state")
 
-            # Using the events we can no build up all of our LendingRentings
-            if len(self._transformed) > 0:
-                # Start by grouping ALL events by 'lendingId'
-                lending_id_attr = operator.itemgetter('lendingId')
-                self._transformed = sorted(self._transformed, key=lending_id_attr)
-                groups = {
-                    k: list(g) for k, g in itertools.groupby(self._transformed, lending_id_attr)
-                }
+            as_docs = list(map(lambda x: x.to_dict(), list(self._transformed.values())))
 
-                lending_rentings: List[LendingRenting] = list(
-                    map(LendingRenting.from_events, groups.values())
-                )
+            # * write to the db
+            self._db.put_items(as_docs, self._db_name, self._collection_name)
 
-                # * write to the db
-                self._db.put_items(lending_rentings, self._db_name, self._collection_name)
-
+            self._events = []
             self._flush_state = False
 
-    def _add_transformed(self, event: AzraelEvent) -> None:
-        self._transformed.append(event.to_dict())
+    def _transform_event(self, event: AzraelEvent):
+        if event.event == 'Lent' and not event.lendingId in self._transformed:
+            self._transformed[event.lendingId] = LendingRenting.from_lent_event(event)
+        elif event.event == 'Rented':
+            self._transformed[event.lendingId].insert_rented(event)
+        elif event.event == 'Returned':
+            self._transformed[event.lendingId].insert_returned(event)
+        elif event.event == 'CollateralClaimed':
+            self._transformed[event.lendingId].insert_collateral_claimed(event)
+        elif event.event == 'LendingStopped':
+            self._transformed[event.lendingId].insert_lending_stopped(event)
 
     def _on_collateral_claim(self, event: Any, decoded_params: List[Any]) -> None:
         # CollateralClaimed(indexed uint256 lendingId, uint32 claimedAt)
@@ -164,7 +175,7 @@ class Transformer:
             claimed_at=int(decoded_params[1]),
         )
 
-        self._add_transformed(event)
+        self._events.append(event)
 
     def _on_lending_stopped(self, event: Any, decoded_params: List[Any]) -> None:
         # LendingStopped(indexed uint256 lendingId, uint32 stoppedAt)
@@ -176,7 +187,7 @@ class Transformer:
             stopped_at=int(decoded_params[1]),
         )
 
-        self._add_transformed(event)
+        self._events.append(event)
 
     def _on_returned(self, event: Any, decoded_params: List[Any]) -> None:
         # Returned(indexed uint256 lendingId, uint32 returnedAt)
@@ -188,7 +199,7 @@ class Transformer:
             returned_at=int(decoded_params[1]),
         )
 
-        self._add_transformed(event)
+        self._events.append(event)
 
     def _on_rented(self, event: Any, decoded_params: List[Any]) -> None:
         # Rented(uint256 lendingId, indexed address renterAddress, uint8 rentDuration,
@@ -203,7 +214,7 @@ class Transformer:
             rented_at=int(decoded_params[3]),
         )
 
-        self._add_transformed(event)
+        self._events.append(event)
 
     # todo: typing for event
     def _on_lent(self, event: Any, decoded_params: List[Any]) -> None:
@@ -226,8 +237,4 @@ class Transformer:
             payment_token=int(decoded_params[9]),
         )
 
-        self._add_transformed(event)
-
-
-# todo: do not save empty lists
-# todo: block height state is incorrect
+        self._events.append(event)

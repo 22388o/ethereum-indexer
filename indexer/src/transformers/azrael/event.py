@@ -5,22 +5,23 @@ Event List: Lent, Rented, Returned, LendingStopped, CollateralClaimed
 """
 
 from dataclasses import asdict, dataclass, field
+from abc import ABC
 from typing import Union
 
 ID_SEPERATOR = "_"
 
 
 @dataclass(frozen=True, order=True)
-class AzraelEvent:
+class AzraelEvent(ABC):
     """
     Abstract azrael Event. Holds txHash and txOffset, togther they are a unique
     identifier for azrael events. e.i _id=txHash_txOffset
     """
 
-    _id: str = field(compare=False)
+    _id: str
     # pylint: disable=invalid-name
-    lendingId: int = field(compare=True)
-    event: str = field(compare=False)
+    lendingId: int
+    event: str
 
     @staticmethod
     def get_id(tx_hash: str, tx_offset: Union[str, int]) -> str:

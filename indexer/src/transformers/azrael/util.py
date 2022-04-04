@@ -2,8 +2,10 @@
 
 # todo: move this to a seperate pypi package
 
-import base64
+# pylint: disable=relative-beyond-top-level
 
+import base64
+from .event import AzraelEvent
 
 def hex_to_int(hex_str: str) -> int:
     """hex bytes to integer"""
@@ -39,3 +41,19 @@ def unpack_price(price: str) -> int:
     # shift right 4 decimal places
     decimal = decimal * 10**-4
     return whole + decimal
+
+
+
+def compare_azrael_events(event_a: AzraelEvent, event_b: AzraelEvent):
+    """
+    Sort Azrael events by priority
+
+    sort priority: lendingId, LentEvent, everything else
+    """
+    if event_a.lendingId == event_b.lendingId:
+        if event_b.event == 'Lent':
+            return -1
+        if event_a.event == 'Lent':
+            return 1
+        return 0
+    return 1 if event_a.lendingId > event_b.lendingId else -1

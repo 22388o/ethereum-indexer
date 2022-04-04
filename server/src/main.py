@@ -63,7 +63,7 @@ class Server(IServer):
 def main():
     """Graphql Server Entrypoint"""
 
-    config = Config.sylvester(graphiql_debug=True)
+    config = Config.azrael(graphiql_debug=True)
 
     logging.basicConfig(
         filename=config.get_log_filename(),

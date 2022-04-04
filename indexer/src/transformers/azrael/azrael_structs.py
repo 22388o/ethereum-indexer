@@ -6,23 +6,26 @@ Lending, Renting, LendingRenting, NFTs
 
 # pylint: disable=invalid-name,relative-beyond-top-level
 
-from dataclasses import dataclass, field
-from typing import List, Union, Tuple
-import operator
-import itertools
+from dataclasses import dataclass, field, asdict
+from typing import List, Union
+from dacite import from_dict
 from .event import (RentedEvent, ReturnedEvent, LendingStoppedEvent,
                          LentEvent, CollateralClaimedEvent)
 
 @dataclass(frozen=True)
 class NFT:
-    """NFT"""
+    """NFT DTO"""
 
     nftAddress: str
     tokenId: str
 
+    def to_dict(self):
+        """Return a dict representation of this struct"""
+        return asdict(self)
+
 @dataclass(frozen=True, order=True)
 class Lending:
-    """Lending"""
+    """Lending DTO"""
 
     # pylint: disable=too-many-instance-attributes
     lendingId: int = field(compare=True)
@@ -33,93 +36,131 @@ class Lending:
     dailyRentPrice: float
     nftPrice: float
     isERC721: bool
-    collateralClaimedAt: int
 
+    @classmethod
+    def from_lent_event(cls, event: LentEvent):
+        """Factory method for Lending"""
 
-@dataclass(frozen=True)
+        return cls(
+            lendingId=event.lendingId,
+            lentAmount=event.lentAmount,
+            maxRentDuration=event.maxRentDuration,
+            paymentToken=event.paymentToken,
+            lendersAddress=event.lendersAddress,
+            dailyRentPrice=event.dailyRentPrice,
+            nftPrice=event.nftPrice,
+            isERC721=event.isERC721,
+        )
+
+    def to_dict(self):
+        """Return a dict representation of this struct"""
+        return asdict(self)
+
+@dataclass(unsafe_hash=True)
 class Renting:
-    """Renting"""
+    """Renting DTO"""
 
     renterAddress: str
     rentDuration: int
     rentedAt: int
-    returnedAt: Union[int, None]
+    returnedAt: Union[int, None]  = field(default=None)
+
+    @classmethod
+    def from_rented_event(cls, event: RentedEvent):
+        """Factory method for Renting"""
+        return cls(
+            renterAddress=event.renterAddress,
+            rentDuration=event.rentDuration,
+            rentedAt=event.rentedAt,
+        )
+
+    def to_dict(self):
+        """Return a dict representation of this struct"""
+        return asdict(self)
 
 @dataclass
 class LendingRenting:
-    """LendingRenting"""
+    """LendingRenting DTO"""
 
-
-    Events = Union[
-        LentEvent, RentedEvent, ReturnedEvent,
-        LendingStoppedEvent, CollateralClaimedEvent
-    ]
-
-    _id: str # for mongodb
     nft: NFT
     lending: Lending
-    rentings: List[Renting] = field(default=list)
+    _id: int = field(default=None, compare=True) # id for mongodb doc
+    stoppedAt: Union[int, None] = field(default=None)
+    collateralClaimedAt: Union[int, None] = field(default=None)
+    rentings: List[Renting] = field(default_factory=lambda: [])
+
+    def __post_init__(self):
+        self._id = self.lending.lendingId
+
+    @staticmethod
+    def from_mongo_doc(mongo_doc):
+        """Parses mongo doc to LendingRenting dataclass"""
+        return from_dict(data_class=LendingRenting, data=mongo_doc)
+
+    def to_dict(self):
+        """Return a dict representation of this struct"""
+        return asdict(self)
+
+    def insert_rented(self, event: RentedEvent):
+        """Insert rented event"""
+
+        self.rentings.append(Renting.from_rented_event(event))
+        self._sort_and_reduce_rentings()
+
+    def insert_collateral_claimed(self, event: CollateralClaimedEvent):
+        """Insert CollateralClaimedEvent"""
+        self.collateralClaimedAt = event.claimedAt
+
+    def insert_lending_stopped(self, event: LendingStoppedEvent):
+        """Insert StopLendingEvent"""
+        self.stoppedAt = event.stoppedAt
+
+    def insert_returned(self, event: ReturnedEvent):
+        """Insert returned event"""
+        self.rentings.append(event)
+        self._sort_and_reduce_rentings()
+
+    def _sort_and_reduce_rentings(self):
+        """
+        Merges Returned and Rented events into Rented events. Organizes cronologically
+        """
+
+        # Need 2 or more elements to sort/reduce
+        if len(self.rentings) < 2:
+            return
+
+        # shallow copy + remove duplicates
+        aux_list = list(set(self.rentings))
+
+        def sort_by(dto: Union[RentedEvent, ReturnedEvent]):
+            return dto.rentedAt if hasattr(dto, 'rentedAt') else dto.returnedAt
+
+        # put them in cronological order
+        aux_list.sort(key=sort_by)
+
+        # reduce ReturnedEvents + RentedEvents into only RentedEvents (with returnedAt field populated)
+        index = 1
+        while index <= len(aux_list) - 1:
+            a = aux_list[index - 1]
+            b = aux_list[index]
+            if hasattr(b, 'returnedAt'):
+                if hasattr(a, 'rentedAt'):
+                    a.returnedAt = b.returnedAt
+                    aux_list[index] = None # Null out the ReturnedEvent
+
+            index += 1
+
+        # Remove Nulled ReturnedEvents
+        aux_list = list(filter(lambda x: x is not None, aux_list))
+        self.rentings = aux_list
 
 
     @classmethod
-    def from_events(cls, events: List[Events]):
+    def from_lent_event(cls, event: LentEvent):
         """Factory method for LendingRenting"""
 
-        lent_event: LentEvent = events[0]
+        lending = Lending.from_lent_event(event)
 
-        if lent_event['event'] != 'Lent':
-            raise Exception("Weird. Lent event should always be the first event.")
+        nft = NFT(nftAddress=event.nftAddress, tokenId=event.tokenId)
 
-        # List of Rented events, preserve cronological order
-        rented_events: List[RentedEvent] = list(filter(lambda x: x['event'] == 'Rented', events))
-
-        # List of Returned events, preserve cronological order
-        returned_events: List[ReturnedEvent] = list(filter(lambda x: x['event'] == 'Returned', events))
-
-        # Group them into tuples of (RentedEvent, ReturnedEvent), (RentedEvent, ReturnedEvent), ...
-        # Notice that the last tuple may be (RentedEvent, None) if the rental has not been returned
-        rented_returned: List[Tuple(RentedEvent, ReturnedEvent)] = itertools.zip_longest(
-            rented_events, returned_events, fillvalue=None
-        )
-
-        rentings: List[Renting] = []
-        for rented, returned in rented_returned:
-            renting: Renting = Renting(
-                renterAddress=rented['renterAddress'],
-                rentDuration=rented['rentDuration'],
-                rentedAt=rented['rentedAt'],
-                # the rental may not be returned yet
-                returnedAt=returned['returnedAt'] if returned is not None else None
-            )
-
-            rentings.append(renting)
-
-
-        collateral_claimed_events: List[CollateralClaimedEvent] = list(
-            filter(lambda x: x['event'] == 'CollateralClaimed', events)
-        )
-        collateral_claimed_at: Union[int, None] = None
-        if len(collateral_claimed_events) > 0:
-            # If collateral was claimed, it will always be the last event
-            collateral_claimed_at = collateral_claimed_events[0]['claimedAt']
-
-        lending = Lending(
-            lendingId=lent_event['lendingId'],
-            lentAmount=lent_event['lentAmount'],
-            maxRentDuration=lent_event['maxRentDuration'],
-            paymentToken=lent_event['paymentToken'],
-            lendersAddress=lent_event['lendersAddress'],
-            dailyRentPrice=lent_event['dailyRentPrice'],
-            nftPrice=lent_event['nftPrice'],
-            isERC721=lent_event['isERC721'],
-            collateralClaimedAt=collateral_claimed_at
-        )
-
-        nft = NFT(nftAddress=lent_event['nftAddress'], tokenId=lent_event['tokenId'])
-
-        return LendingRenting(
-            _id=lending.lendingId,
-            nft=nft,
-            lending=lending,
-            rentings=rentings
-        )
+        return cls(lending=lending, nft=nft)

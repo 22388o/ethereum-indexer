@@ -143,7 +143,7 @@ class Transform(ITransform):
         latest_block = raw_transactions[-1]["block_height"]
 
         # 6.
-        #self._update_block_height(latest_block)
+        self._update_block_height(latest_block)
 
     def flush(self) -> None:
         """@inheritdoc ITransform"""
