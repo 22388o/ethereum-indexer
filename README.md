@@ -36,16 +36,14 @@ To change the network that covalent extracts transactions from, go to `extractor
 
 It is paramount that you follow the linting and formatting conventions of this repository.
 
-Make sure you have (`pre-commit`)[https://pre-commit.com/] installed. `pre-commit` is part of the dev dependencies in this repo. You just need to run `pre-commit install` once you are in the correct poetry python environment. Also, make sure, that after you opened the PR all checks pass. Otherwise, the PR **will not be merged**.
+Make sure to lint and format modules individually before pushing. Otherwise, the pylint and black git actions will fail. Both linting and formatting should be done on a per-module basis. That is to say, lint/format `indexer` and `server` separately.
 
-Also, make sure to lint modules individually before pushing. Otherwise, the pylint git action will fail. Navigate to the root module directory `cd server/` and run `pylint --recursive=y .`. 
+To lint a module, navigate to the root module directory (`server/` or `indexer/`), enter poetry shell by running `poetry shell`, and execute `pylint --recursive=y .` and `black .`.
 
-Note: Pylint is not part of pre-commit config because it does not play well with the monolithic structure of the project.
+Note: Linting and formatting with pre-commit has been deprecated because it does not play well with the monolithic structure of the project.
 
 ### TODO
 
 1. Dockerfile
-2. pre-commit linter
-3. commit linter
-4. back ups
-5. remove the disable of duplicate code in .pylintrc (i.e. refactor the code such that there is no duplicate code)
+2. back ups
+3. remove the disable of duplicate code in .pylintrc (i.e. refactor the code such that there is no duplicate code)
