@@ -121,7 +121,7 @@ class Config:
         """
 
         address = "0xa10bEa6303E89225D6fA516594632DddB6FBF3b5"
-        log_filename = "rkl_club_auction.log"
+        log_filename = "rkl_club_auction_kovan.log"
         transformer_name = "rkl_club_auction"
         network_id = 42
 
