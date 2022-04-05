@@ -105,7 +105,7 @@ class Config:
         return cls(address, log_filename, transformer_name, network_id)
 
     @classmethod
-    def rkl_club_auction(cls):
+    def rkl_club_auction_kovan(cls):
         """
         Returns instance of an rkl_club_auction
         indexer and transformer. It collects all the raw
