@@ -1,16 +1,20 @@
+"""
+Transformer base class
+"""
 import importlib
 import logging
 import time
 
-from interfaces.itransform import ITransform
-from db import DB
-
 from config import Config
+from db import DB
+from interfaces.itransform import ITransform
 
 SLEEP_TIMER = 10
 
 
 class Transform(ITransform):
+    """@inheritdoc ITransform"""
+
     def __init__(self, config: Config):
         self._config = config
 
@@ -27,6 +31,7 @@ class Transform(ITransform):
 
         full_module_name = f"transformers.{self._to_transform}.main"
         transformer_module = importlib.import_module(full_module_name)
+
         # this implies that every transformer will take the address it transforms
         # as a constructor argument
         self._transformer = transformer_module.Transformer(self._config.get_address())

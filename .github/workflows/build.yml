@@ -20,5 +20,9 @@ jobs:
         uses: abatilo/actions-poetry@v2.0.0
         with:
           poetry-version: ${{ matrix.poetry-version }}
-      - name: Install poetry deps
+      - name: Install indexer poetry deps
+        working-directory: ./indexer
+        run: poetry install
+      - name: Install server poetry deps
+        working-directory: ./server
         run: poetry install

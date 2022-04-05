@@ -1,16 +1,40 @@
-from typing import List, Dict, Any, Optional
+"""
+IDB Implementation using pymongo package
+"""
+import os
+from typing import Any, Dict, List, Optional
+
+from dotenv import load_dotenv
 from pymongo import MongoClient
 
 from interfaces.idb import IDB
 
+load_dotenv()
+
+MONGO_URI = (
+    f"mongodb://{os.environ['MONGO_USER']}:{os.environ['MONGO_PASSWORD']}"
+    f"@{os.environ['MONGO_HOST']}:{os.environ['MONGO_PORT']}"
+)
+
 
 class DB(IDB):
+    """@inheritdoc IDB"""
+
     def __init__(self):
-        self.client = MongoClient(port=27017)
+        self.client = MongoClient(MONGO_URI)
 
     def put_item(self, item: Dict, database_name: str, collection_name: str) -> None:
         db = self.client[database_name]
         db[collection_name].replace_one({"_id": item["_id"]}, item, upsert=True)
+
+    def put_items(
+        self, items: List[Any], database_name: str, collection_name: str
+    ) -> None:
+        if len(items) == 0:
+            return
+
+        db = self.client[database_name]
+        db[collection_name].insert_many(items)
 
     def get_item(
         self, identifier: str, database_name: str, collection_name: str

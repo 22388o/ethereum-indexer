@@ -1,6 +1,9 @@
+"""
+An indexer transformer for RKL Club Auctions
+"""
 import logging
-from eth_abi import decode_single
 
+from eth_abi import decode_single
 from db import DB
 
 # ! this code is taken from: https://github.com/rumble-kong-league/club-nft-auction
@@ -13,6 +16,8 @@ PLACE_BID_EVENT = "0xe694ab314354b7ccad603c48b44dce6ade8b6a57cbebaa8842edd9a2fb2
 # todo: every instance should also take the address it transforms
 # todo: as a constructor argument
 class Transformer:
+    """RKL Club Auction Transformer Implementation"""
+
     def __init__(self, address: str):
 
         self._address = address
@@ -20,7 +25,7 @@ class Transformer:
         self._transformed = {"_id": 1}
 
         self._db_name = "ethereum-indexer"
-        self._collection_name = f"{address}-state"
+        self._collection_name = f"{self._address}-state"
 
         self._flush_state = False
 
@@ -46,6 +51,7 @@ class Transformer:
         return bytes.fromhex(hexstring[2:])
 
     # todo: txn dataclass
+    # todo: documentation
     def entrypoint(self, txn):
         """
         Main entrypoint for transforming the raw data. Responsible

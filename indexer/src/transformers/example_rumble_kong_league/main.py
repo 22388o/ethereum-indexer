@@ -1,12 +1,18 @@
+"""
+An indexer transformer for RKL Kong Holders
+"""
 import logging
 
 from db import DB
 from transform.covalent import Covalent
 
+
 # todo: needs to inherit an interface that implements flush
 # todo: every instance should also take the address it transforms
 # todo: as a constructor argument
 class Transformer:
+    """RKL Kong Holder Transformer Implementation"""
+
     def __init__(self, address: str):
 
         self._address = address
@@ -14,13 +20,15 @@ class Transformer:
         self._transformed = {"_id": 1}
 
         self._db_name = "ethereum-indexer"
-        self._collection_name = f"{address}-state"
+        self._collection_name = f"{self._address}-state"
+        self._events_of_interest = ["Transfer"]
 
         self._flush_state = False
 
         self._db = DB()
 
     # todo: type that returns transformed transaction
+    # todo: documentation
     def entrypoint(self, txn) -> None:
         """_summary_
 
@@ -53,14 +61,15 @@ class Transformer:
                 logging.warning(f"No name for event: {event}")
                 continue
 
-            if event["decoded"]["name"] == "Transfer":
+            if event["decoded"]["name"] in self._events_of_interest:
                 decoded_params = Covalent.decode(event)
-                from_, to, value = (
-                    decoded_params[0],
-                    decoded_params[1],
-                    decoded_params[2],
-                )
-                self._on_transfer(from_, to, value)
+                if event["decoded"]["name"] == "Transfer":
+                    from_, _to, value = (
+                        decoded_params[0],
+                        decoded_params[1],
+                        decoded_params[2],
+                    )
+                    self._on_transfer(from_, _to, value)
 
             logging.info(event)
 

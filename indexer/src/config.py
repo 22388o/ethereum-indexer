@@ -1,3 +1,8 @@
+"""
+Defines Configuration schema and factory methods.
+"""
+
+
 class Config:
     """
     Each Config instance contains all the required information for end-to-end
@@ -88,7 +93,7 @@ class Config:
         Network: Ethereum Mainnet.
 
         Returns:
-            _type_: instance of this class with the correct
+            (Config): instance of this Config class instantiated with the correct
             configs.
         """
 
@@ -111,7 +116,7 @@ class Config:
         Network: Ethereum Kovan.
 
         Returns:
-            _type_: instance of this class with the correct
+            (Config): instance of this Config class instantiated with the correct
             configs.
         """
 

@@ -32,10 +32,18 @@ This should be ran in your `poetry` environment. To drop into poetry environment
 
 To change the network that covalent extracts transactions from, go to `extractor/covalent.py`
 
+### For Developers
+
+It is paramount that you follow the linting and formatting conventions of this repository.
+
+Make sure to lint and format modules individually before pushing. Otherwise, the pylint and black git actions will fail. Both linting and formatting should be done on a per-module basis. That is to say, lint/format `indexer` and `server` separately.
+
+To lint a module, navigate to the root module directory (`server/` or `indexer/`), enter poetry shell by running `poetry shell`, and execute `pylint --recursive=y .` and `black .`.
+
+Note: Linting and formatting with pre-commit has been deprecated because it does not play well with the monolithic structure of the project.
+
 ### TODO
 
 1. Dockerfile
-2. pre-commit linter
-3. commit linter
-4. back ups
-5. remove the disable of duplicate code in .pylintrc (i.e. refactor the code such that there is no duplicate code)
+2. back ups
+3. remove the disable of duplicate code in .pylintrc (i.e. refactor the code such that there is no duplicate code)

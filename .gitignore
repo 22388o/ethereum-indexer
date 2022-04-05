@@ -1,3 +1,11 @@
+# For dev purposes
+docker-bauti-compose.yml
+src/extract/mock.covalent.response.json
+server/.env
+indexer/.env
+
+.DS_Store
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

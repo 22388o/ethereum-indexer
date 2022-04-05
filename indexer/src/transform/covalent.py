@@ -4,6 +4,7 @@ from extract.covalent import Covalent as Covalent_
 
 
 class Covalent(Covalent_):
+    """@inheritdoc Covalent"""
 
     # todo: better txn type
     @staticmethod
@@ -33,6 +34,10 @@ class Covalent(Covalent_):
 
                 if decoded_param["type"] == "uint256":
                     decoded.append(int(raw_param, 16))
-                # todo: other types
+                # todo: Other types
+                else:
+                    raise NotImplementedError(
+                        f'Undecoded covalent param: {decoded_param["type"]}'
+                    )
 
         return decoded
