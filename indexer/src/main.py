@@ -59,8 +59,8 @@ def main():
     transformer.start()
     logging.info("Transformer started.")
 
-    extractor.join()  # wait to finish
-    transformer.join()  # wait to finish
+    extractor.join()
+    transformer.join()
 
 
 if __name__ == "__main__":
