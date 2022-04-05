@@ -11,17 +11,25 @@ from interfaces.idb import IDB
 
 load_dotenv()
 
-MONGO_URI = (
-    f"mongodb://{os.environ['MONGO_USER']}:{os.environ['MONGO_PASSWORD']}"
-    f"@{os.environ['MONGO_HOST']}:{os.environ['MONGO_PORT']}"
-)
+def get_mongo_uri() -> str:
+    prefix = ""
+
+    if ('MONGO_USER' in os.environ) and ('MONGO_PASS' in os.environ):
+        prefix = (
+            f"{os.environ['MONGO_USER']}:{os.environ['MONGO_PASS']}@"
+        )
+
+    return (
+        f"mongodb://{prefix}"
+        f"{os.environ['MONGO_HOST']}:{os.environ['MONGO_PORT']}"
+    )
 
 
 class DB(IDB):
     """@inheritdoc IDB"""
 
     def __init__(self):
-        self.client = MongoClient(MONGO_URI)
+        self.client = MongoClient(get_mongo_uri())
 
     def put_item(self, item: Dict, database_name: str, collection_name: str) -> None:
         db = self.client[database_name]

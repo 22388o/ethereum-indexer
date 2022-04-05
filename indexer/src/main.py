@@ -41,7 +41,7 @@ def main():
     One for extraction, and one for transforming.
     """
 
-    config = Config.example_rumble_kong_league()
+    config = Config.rkl_club_auction_kovan()
 
     logging.basicConfig(
         filename=config.get_log_filename(),

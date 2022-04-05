@@ -11,17 +11,25 @@ from interfaces.idb import IDB
 
 load_dotenv()
 
-MONGO_URI = (
-    f"mongodb://{os.environ['MONGO_USER']}:{os.environ['MONGO_PASSWORD']}"
-    f"@{os.environ['MONGO_HOST']}:{os.environ['MONGO_PORT']}"
-)
+def get_mongo_uri() -> str:
+    prefix = ""
+
+    if ('MONGO_USER' in os.environ) and ('MONGO_PASS' in os.environ):
+        prefix = (
+            f"{os.environ['MONGO_USER']}:{os.environ['MONGO_PASS']}@"
+        )
+
+    return (
+        f"mongodb://{prefix}"
+        f"{os.environ['MONGO_HOST']}:{os.environ['MONGO_PORT']}"
+    )
 
 
 class DB(IDB):
     """@inheritdoc IDB"""
 
     def __init__(self):
-        self.client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_URI)
+        self.client = motor.motor_asyncio.AsyncIOMotorClient(get_mongo_uri())
 
     def _get_collection(self, database_name: str, collection_name: str):
         return self.client[database_name][collection_name]
