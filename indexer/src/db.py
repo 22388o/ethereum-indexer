@@ -11,25 +11,26 @@ from interfaces.idb import IDB
 
 load_dotenv()
 
-def get_mongo_uri() -> str:
-    prefix = ""
 
-    if ('MONGO_USER' in os.environ) and ('MONGO_PASS' in os.environ):
-        prefix = (
-            f"{os.environ['MONGO_USER']}:{os.environ['MONGO_PASS']}@"
-        )
+def check_environ(env_var: str) -> None:
+    """
+    Checks if environment variable is set
 
-    return (
-        f"mongodb://{prefix}"
-        f"{os.environ['MONGO_HOST']}:{os.environ['MONGO_PORT']}"
-    )
+    Args:
+        env_var (str): environment variable to check for
+    """
+    if not os.getenv(env_var):
+        raise ValueError(f"{env_var} environment variable not set.")
+
+
+check_environ("MONGO_URI")
 
 
 class DB(IDB):
     """@inheritdoc IDB"""
 
     def __init__(self):
-        self.client = MongoClient(get_mongo_uri())
+        self.client = MongoClient(os.getenv("MONGO_URI"))
 
     def put_item(self, item: Dict, database_name: str, collection_name: str) -> None:
         db = self.client[database_name]
