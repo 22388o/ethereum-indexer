@@ -95,6 +95,7 @@ disable=invalid-name,
         too-few-public-methods,
         duplicate-code,
         logging-fstring-interpolation,
+        broad-except,
         fixme
 
 # Enable the message, report, category or checker with the given id(s). You can

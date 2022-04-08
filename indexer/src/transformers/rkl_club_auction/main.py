@@ -93,10 +93,11 @@ class Transformer:
             )
             price /= 1e18
 
-            timestamp = int(datetime.strptime(
-                txn['block_signed_at'],
-                '%Y-%m-%dT%H:%M:%SZ'
-            ).timestamp())
+            timestamp = int(
+                datetime.strptime(
+                    txn["block_signed_at"], "%Y-%m-%dT%H:%M:%SZ"
+                ).timestamp()
+            )
             self._on_place_bid(bidder, price, timestamp)
 
             logging.info(event)
@@ -106,21 +107,17 @@ class Transformer:
     def _on_place_bid(self, bidder: str, price: float, timestamp: int) -> None:
         # PlaceBid(address indexed bidder, uint256 indexed price)
 
-        item = self._db.get_item(
-            bidder.lower(),
-            self._db_name,
-            self._collection_name
-        )
+        item = self._db.get_item(bidder.lower(), self._db_name, self._collection_name)
 
         if item is None:
-            self._transformed.append({
-                '_id': bidder.lower(),
-                'bids': [
-                    {'amount': price, 'timestamp': timestamp}
-                ]
-            })
+            self._transformed.append(
+                {
+                    "_id": bidder.lower(),
+                    "bids": [{"amount": price, "timestamp": timestamp}],
+                }
+            )
         else:
-            item['bids'].append({'amount': price, 'timestamp': timestamp})
+            item["bids"].append({"amount": price, "timestamp": timestamp})
             self._transformed.append(item)
 
     # todo: should be part of the interface
