@@ -110,12 +110,24 @@ class Transformer:
         item = self._db.get_item(bidder.lower(), self._db_name, self._collection_name)
 
         if item is None:
-            self._transformed.append(
-                {
-                    "_id": bidder.lower(),
-                    "bids": [{"amount": price, "timestamp": timestamp}],
-                }
-            )
+            # * could be that the item is in self._transformed
+            pop_ix = None
+            for ix, t in enumerate(self._transformed):
+                if t['_id'] == bidder.lower():
+                    pop_ix = ix
+                    break
+
+            if pop_ix is not None:
+                item = self._transformed.pop(pop_ix)
+                item["bids"].append({"amount": price, "timestamp": timestamp})
+                self._transformed.append(item)
+            else:
+                self._transformed.append(
+                    {
+                        "_id": bidder.lower(),
+                        "bids": [{"amount": price, "timestamp": timestamp}],
+                    }
+                )
         else:
             item["bids"].append({"amount": price, "timestamp": timestamp})
             self._transformed.append(item)
