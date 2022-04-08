@@ -1,6 +1,7 @@
 """
 An indexer transformer for RKL Club Auctions
 """
+from datetime import datetime
 import logging
 
 from eth_abi import decode_single
@@ -22,15 +23,18 @@ class Transformer:
 
         self._address = address
 
-        self._transformed = {"_id": 1}
+        self._transformed = []
 
         self._db_name = "ethereum-indexer"
+        # todo: will run into problems when you have same addresses across networks
+        # todo: should be named taking into account network id
         self._collection_name = f"{self._address}-state"
 
         self._flush_state = False
 
         self._db = DB()
 
+    # todo: this should be in utils somewhere
     @staticmethod
     def hexstring_to_bytes(hexstring: str) -> bytes:
         """
@@ -61,9 +65,7 @@ class Transformer:
             txn (_type_): _description_
         """
 
-        # 1. check if there is state in the db
-        # 2. if there is state in the db, update memory with it
-        self.update_memory_state()
+        # logging.info(txn)
 
         # routes and performs any additional logic
         logging.info(f'Handling transaction at: {txn["block_height"]} block')
@@ -79,16 +81,6 @@ class Transformer:
             if event["sender_address"] != self._address.lower():
                 continue
 
-            # In the case of kovan testing, none of the transaction / event
-            # details were decoded. So they must be decoded manually.
-
-            # example of a possible event
-            # [
-            #     '0xe694ab314354b7ccad603c48b44dce6ade8b6a57cbebaa8842edd9a2fb2856f8',
-            #     '0x000000000000000000000000000000724350d0b24747bd816dc5031acb7efe0b',
-            #     '0x000000000000000000000000000000000000000000000000002bd72a24874000'
-            # ]
-
             if event["raw_log_topics"][0] != PLACE_BID_EVENT:
                 continue
 
@@ -101,26 +93,35 @@ class Transformer:
             )
             price /= 1e18
 
-            self._on_place_bid(bidder, price)
+            timestamp = int(datetime.strptime(
+                txn['block_signed_at'],
+                '%Y-%m-%dT%H:%M:%SZ'
+            ).timestamp())
+            self._on_place_bid(bidder, price, timestamp)
 
             logging.info(event)
 
         self._flush_state = True
 
-    # todo: should be part of the interface
-    # todo: acts as the means to sync with db state
-    def update_memory_state(self) -> None:
-        """
-        If the script was cancelled previously, this pulls the latest
-        transformed state from the db.
-        """
+    def _on_place_bid(self, bidder: str, price: float, timestamp: int) -> None:
+        # PlaceBid(address indexed bidder, uint256 indexed price)
 
-        state = self._db.get_any_item(self._db_name, self._collection_name)
+        item = self._db.get_item(
+            bidder.lower(),
+            self._db_name,
+            self._collection_name
+        )
 
-        if state is None:
-            return
-
-        self._transformed = state
+        if item is None:
+            self._transformed.append({
+                '_id': bidder.lower(),
+                'bids': [
+                    {'amount': price, 'timestamp': timestamp}
+                ]
+            })
+        else:
+            item['bids'].append({'amount': price, 'timestamp': timestamp})
+            self._transformed.append(item)
 
     # todo: should be part of the interface
     def flush(self) -> None:
@@ -129,14 +130,7 @@ class Transformer:
         """
 
         if self._flush_state:
-            # * write to the db
-            self._db.put_item(self._transformed, self._db_name, self._collection_name)
+            for item in self._transformed:
+                self._db.put_item(item, self._db_name, self._collection_name)
+            self._transformed = []
             self._flush_state = False
-
-    def _on_place_bid(self, bidder: str, price: float) -> None:
-        # PlaceBid(address indexed bidder, uint256 indexed price)
-
-        if bidder in self._transformed:
-            self._transformed[bidder] += price
-        else:
-            self._transformed[bidder] = price

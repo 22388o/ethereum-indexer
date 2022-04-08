@@ -94,6 +94,7 @@ disable=invalid-name,
         import-error,
         too-few-public-methods,
         duplicate-code,
+        logging-fstring-interpolation,
         fixme
 
 # Enable the message, report, category or checker with the given id(s). You can

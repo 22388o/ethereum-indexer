@@ -49,7 +49,10 @@ class DB(IDB):
         self, identifier: str, database_name: str, collection_name: str
     ) -> Any:
         db = self.client[database_name]
-        return db[collection_name].find({"_id": identifier})
+        try:
+            return db[collection_name].find({"_id": identifier})[0]
+        except Exception:
+            return None
 
     # todo: concrete type for options
     def get_all_items(

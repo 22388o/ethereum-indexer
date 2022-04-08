@@ -1,0 +1,1 @@
+TODO: implement graceful exit to avoid data corruption
