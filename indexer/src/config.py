@@ -97,7 +97,7 @@ class Config:
             configs.
         """
 
-        address = "0xEf0182dc0574cd5874494a120750FD222FdB909a"
+        address = "0xEf0182dc0574cd5874494a120750FD222FdB909a".lower()
         log_filename = "example_rumble_kong_league.log"
         transformer_name = "example_rumble_kong_league"
         network_id = 1
@@ -120,7 +120,7 @@ class Config:
             configs.
         """
 
-        address = "0xa10bEa6303E89225D6fA516594632DddB6FBF3b5"
+        address = "0xa10bEa6303E89225D6fA516594632DddB6FBF3b5".lower()
         log_filename = "rkl_club_auction_kovan.log"
         transformer_name = "rkl_club_auction"
         network_id = 42
