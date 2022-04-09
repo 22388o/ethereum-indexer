@@ -13,15 +13,15 @@ from transform.covalent import Covalent
 class Transformer:
     """RKL Kong Holder Transformer Implementation"""
 
-    def __init__(self, address: str):
+    def __init__(self, address: str, network_id: int):
 
         self._address = address
+        self._network_id = network_id
 
         self._transformed = {"_id": 1}
 
         self._db_name = "ethereum-indexer"
-        self._collection_name = f"{self._address}-state"
-        self._events_of_interest = ["Transfer"]
+        self._collection_name = f"{self._address}-{self._network_id}-state"
 
         self._flush_state = False
 
@@ -61,7 +61,7 @@ class Transformer:
                 logging.warning(f"No name for event: {event}")
                 continue
 
-            if event["decoded"]["name"] in self._events_of_interest:
+            if event["decoded"]["name"] == "Transfer":
                 decoded_params = Covalent.decode(event)
                 if event["decoded"]["name"] == "Transfer":
                     from_, _to, value = (

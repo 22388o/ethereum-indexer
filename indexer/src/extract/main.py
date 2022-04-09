@@ -28,7 +28,6 @@ class Extract(IExtract):
 
         # todo: validate to ensure that this address is not in the db
 
-        self._address: str = self._config.get_address()
         # block number up to which the extraction has happened
         self._block_height: int = 0
 
@@ -41,23 +40,13 @@ class Extract(IExtract):
         # todo: type of transactions
         self._transactions = []
 
-    def __setattr__(self, key, value):
-        # https://towardsdatascience.com/how-to-create-read-only-and-deletion-proof-attributes-in-your-python-classes-b34cd1019c2d
+    def _get_collection_name(self) -> str:
+        return f"{self._config.get_address()}-{self._config.get_network_id()}"
 
-        # re-setting the _address, _db_name, _db, _load is not allowed
-        forbid_reset_on = ["_config", "_address", "_db_name", "_db"]
-        for k in forbid_reset_on:
-            if key == k and hasattr(self, k):
-                raise AttributeError(
-                    "The value of the address attribute has already been set,",
-                    " and can not be re-set.",
-                )
-
-        self.__dict__[key] = value
-
-    @staticmethod
-    def _get_block_height_collection_name(address: str) -> str:
-        return f"{address}-block-height"
+    def _get_block_height_collection_name(self) -> str:
+        return (
+            f"{self._config.get_address()}-{self._config.get_network_id()}-block-height"
+        )
 
     def _determine_block_height(self) -> None:
         """
@@ -67,7 +56,7 @@ class Extract(IExtract):
         """
 
         block_height_item = self._db.get_any_item(
-            self._db_name, self._get_block_height_collection_name(self._address)
+            self._db_name, self._get_block_height_collection_name()
         )
         # If it is None, then we have already set it to 0 in the
         # __init__. This will signal the extractor to extract
@@ -77,25 +66,28 @@ class Extract(IExtract):
 
         self._block_height = block_height_item["block_height"]
 
-    def _update_block_height(self, new_block_height: int, for_address: str) -> None:
+    def _update_block_height(self, new_block_height: int) -> None:
         """
         After extracting the transactions update the db with the latest block height.
 
         Args:
             new_block_height (int): _description_
-            for_address (str): _description_
         """
 
-        collection_name = self._get_block_height_collection_name(for_address)
         # _id: 1, because we are only ever storing single block_height value per address
         item = {"_id": 1, "block_height": new_block_height}
-        self._db.put_item(item, self._db_name, collection_name)
+        self._db.put_item(
+            item=item,
+            database_name=self._db_name,
+            collection_name=self._get_block_height_collection_name(),
+        )
 
-    def _request_transactions(self, for_address: str, page_number: int) -> None:
-        response = self._covalent.request_transactions(for_address, page_number)
-        return response
+    def _request_transactions(self, page_number: int) -> None:
+        return self._covalent.request_transactions(
+            self._config.get_address(), page_number
+        )
 
-    def _extract_txn_history_since(self, block_height: int, for_address: str) -> None:
+    def _extract_txn_history_since(self, block_height: int) -> None:
         """
         Makes requests to Covalent, and only extracts transactions after `block_height`
         block number.
@@ -104,10 +96,11 @@ class Extract(IExtract):
             block_height (int): We have data for this address up to and including this
             block number. Our goal is to obtain transactions after this block number
             (if there are any).
-            for_address (str): We are extracting transactions for this address.
         """
 
-        logging.info(f"Extracting {for_address} since block: {block_height}")
+        logging.info(
+            f"Extracting {self._config.get_address()} since block: {block_height}"
+        )
 
         page_number = 0
         last_block_height = block_height
@@ -116,7 +109,7 @@ class Extract(IExtract):
 
         while keep_looping:
 
-            response = self._request_transactions(for_address, page_number)
+            response = self._request_transactions(page_number)
             block_height = self._covalent.get_block_height(response)
 
             if page_number == 0:
@@ -146,7 +139,7 @@ class Extract(IExtract):
                 page_number += 1
 
         if latest_block_height > last_block_height:
-            self._update_block_height(latest_block_height, for_address)
+            self._update_block_height(latest_block_height)
 
         logging.info("Extractor sleeping...")
         time.sleep(EXTRACT_SLEEP_TIME)
@@ -159,7 +152,9 @@ class Extract(IExtract):
         if len(self._transactions) == 0:
             return
 
-        self._db.put_items(self._transactions, self._db_name, self._address)
+        self._db.put_items(
+            self._transactions, self._db_name, self._get_collection_name()
+        )
 
         self._transactions = []
 
@@ -174,4 +169,18 @@ class Extract(IExtract):
         # if it doesn't have any transactions, download all
         # - we utilise a separate collection to track what raw transactions have
         # been extracted
-        self._extract_txn_history_since(self._block_height, self._address)
+        self._extract_txn_history_since(self._block_height)
+
+    def __setattr__(self, key, value):
+        # https://towardsdatascience.com/how-to-create-read-only-and-deletion-proof-attributes-in-your-python-classes-b34cd1019c2d
+
+        # re-setting the _address, _db_name, _db, _load is not allowed
+        forbid_reset_on = ["_config", "_address", "_db_name", "_db"]
+        for k in forbid_reset_on:
+            if key == k and hasattr(self, k):
+                raise AttributeError(
+                    "The value of the address attribute has already been set,",
+                    " and can not be re-set.",
+                )
+
+        self.__dict__[key] = value

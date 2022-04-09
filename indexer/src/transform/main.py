@@ -34,38 +34,24 @@ class Transform(ITransform):
 
         # this implies that every transformer will take the address it transforms
         # as a constructor argument
-        self._transformer = transformer_module.Transformer(self._config.get_address())
+        self._transformer = transformer_module.Transformer(
+            self._config.get_address(), self._config.get_network_id()
+        )
 
         self._db_name = "ethereum-indexer"
 
         # * to read the raw transactions from the database
         self._db = DB()
 
-    def __setattr__(self, key, value):
-        # https://towardsdatascience.com/how-to-create-read-only-and-deletion-proof-attributes-in-your-python-classes-b34cd1019c2d
-
-        forbid_reset_on = [
-            "_to_transform",
-            "_config",
-            "_db_name",
-            "_db",
-            "_transformer",
-        ]
-        for k in forbid_reset_on:
-            if key == k and hasattr(self, k):
-                raise AttributeError(
-                    "The value of the address attribute has already been set,"
-                    " and can not be re-set."
-                )
-
-        self.__dict__[key] = value
+    def _get_raw_txn_collection_name(self) -> str:
+        return f"{self._config.get_address()}-{self._config.get_network_id()}"
 
     def _get_state_collection_name(self) -> str:
         # !: will be more than one address later
-        return f"{self._config.get_address()}-state"
+        return f"{self._config.get_address()}-{self._config.get_network_id()}-state"
 
     def _get_block_height_collection_name(self) -> str:
-        return f"{self._config.get_address()}-block-height-state"
+        return f"{self._config.get_address()}-{self._config.get_network_id()}-block-height-state"
 
     def _determine_block_height(self) -> None:
         """
@@ -83,12 +69,15 @@ class Transform(ITransform):
 
         self._block_height = block_height_item["block_height"]
 
-    # todo: func docs
     def _update_block_height(self, new_block_height: int) -> None:
         """
+        Block height is used as an indicator of how far we have in transforming
+        the raw transactions. This is useful because if we don't keep this information
+        we may transform the same transaction's logs twice.
+
         Args:
-            new_block_height (int): _description_
-            for_address (str): _description_
+            new_block_height (int): we have now transformed raw transactions up to this
+            block number.
         """
 
         collection_name = self._get_block_height_collection_name()
@@ -104,7 +93,7 @@ class Transform(ITransform):
 
         raw_transactions = self._db.get_all_items(
             self._db_name,
-            self._config.get_address(),
+            self._get_raw_txn_collection_name(),
             {
                 "query_clause": {"block_height": {"$gt": self._block_height}},
                 "sort": {"sort_by": "block_height", "direction": 1},
@@ -153,3 +142,22 @@ class Transform(ITransform):
 
         logging.info("Transformer sleeping...")
         time.sleep(SLEEP_TIMER)
+
+    def __setattr__(self, key, value):
+        # https://towardsdatascience.com/how-to-create-read-only-and-deletion-proof-attributes-in-your-python-classes-b34cd1019c2d
+
+        forbid_reset_on = [
+            "_to_transform",
+            "_config",
+            "_db_name",
+            "_db",
+            "_transformer",
+        ]
+        for k in forbid_reset_on:
+            if key == k and hasattr(self, k):
+                raise AttributeError(
+                    "The value of the address attribute has already been set,"
+                    " and can not be re-set."
+                )
+
+        self.__dict__[key] = value

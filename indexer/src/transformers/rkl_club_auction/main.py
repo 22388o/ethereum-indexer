@@ -19,16 +19,17 @@ PLACE_BID_EVENT = "0xe694ab314354b7ccad603c48b44dce6ade8b6a57cbebaa8842edd9a2fb2
 class Transformer:
     """RKL Club Auction Transformer Implementation"""
 
-    def __init__(self, address: str):
+    def __init__(self, address: str, network_id: int):
 
         self._address = address
+        self._network_id = network_id
 
         self._transformed = []
 
         self._db_name = "ethereum-indexer"
         # todo: will run into problems when you have same addresses across networks
         # todo: should be named taking into account network id
-        self._collection_name = f"{self._address}-state"
+        self._collection_name = f"{self._address}-{self._network_id}-state"
 
         self._flush_state = False
 
@@ -113,7 +114,7 @@ class Transformer:
             # * could be that the item is in self._transformed
             pop_ix = None
             for ix, t in enumerate(self._transformed):
-                if t['_id'] == bidder.lower():
+                if t["_id"] == bidder.lower():
                     pop_ix = ix
                     break
 
